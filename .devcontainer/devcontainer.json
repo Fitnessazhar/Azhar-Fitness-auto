@@ -1,4 +1,6 @@
 {
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {}
+  "name": "Azhar Fitness Bot",
+  "build": {
+    "dockerfile": "../Dockerfile"
+  }
 }
