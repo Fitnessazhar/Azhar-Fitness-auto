@@ -1,4 +1,5 @@
 /**
+require('./web-server');
  * WhatsApp Bot - Main Entry Point
  * Advanced WhatsApp Bot with Full HTML Support
  * 
