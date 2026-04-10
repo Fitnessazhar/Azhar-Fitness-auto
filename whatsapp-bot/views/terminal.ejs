@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item active">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Terminal</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="clearTerminal()">
+                        <i class="fas fa-eraser"></i>
+                        Clear
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Terminal -->
+            <div class="card terminal-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-terminal"></i> Bot Console</h2>
+                    <div class="terminal-tabs">
+                        <button class="tab-btn active" data-tab="console">Console</button>
+                        <button class="tab-btn" data-tab="commands">Commands</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="terminal-container" id="terminalContainer">
+                        <div class="terminal-output" id="terminalOutput">
+                            <div class="terminal-line welcome">
+                                <span class="terminal-prompt">$</span>
+                                <span class="terminal-text">WhatsApp Bot Terminal v1.0.0</span>
+                            </div>
+                            <div class="terminal-line welcome">
+                                <span class="terminal-prompt">$</span>
+                                <span class="terminal-text">Type 'help' for available commands</span>
+                            </div>
+                        </div>
+                        <div class="terminal-input-line">
+                            <span class="terminal-prompt">$</span>
+                            <input 
+                                type="text" 
+                                id="terminalInput" 
+                                class="terminal-input"
+                                placeholder="Enter command..."
+                                autocomplete="off"
+                            >
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Commands -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-bolt"></i> Quick Commands</h2>
+                </div>
+                <div class="card-body">
+                    <div class="quick-commands">
+                        <button class="cmd-btn" onclick="runCommand('status')">
+                            <i class="fas fa-info-circle"></i>
+                            Status
+                        </button>
+                        <button class="cmd-btn" onclick="runCommand('plugins')">
+                            <i class="fas fa-puzzle-piece"></i>
+                            Plugins
+                        </button>
+                        <button class="cmd-btn" onclick="runCommand('reload')">
+                            <i class="fas fa-sync"></i>
+                            Reload
+                        </button>
+                        <button class="cmd-btn" onclick="runCommand('restart')">
+                            <i class="fas fa-redo"></i>
+                            Restart
+                        </button>
+                        <button class="cmd-btn" onclick="runCommand('stats')">
+                            <i class="fas fa-chart-bar"></i>
+                            Stats
+                        </button>
+                        <button class="cmd-btn" onclick="runCommand('help')">
+                            <i class="fas fa-question-circle"></i>
+                            Help
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        const terminalOutput = document.getElementById('terminalOutput');
+        const terminalInput = document.getElementById('terminalInput');
+        
+        // Command history
+        let commandHistory = [];
+        let historyIndex = -1;
+        
+        // Available commands
+        const commands = {
+            help: () => {
+                return `Available commands:
+  status    - Show bot status
+  plugins   - List loaded plugins
+  reload    - Reload all plugins
+  restart   - Restart the bot
+  stats     - Show statistics
+  clear     - Clear terminal
+  help      - Show this help message`;
+            },
+            status: () => {
+                return `Bot Status:
+  Connected: ${global.botState?.isConnected ? 'Yes' : 'No'}
+  Ready: ${global.botState?.isReady ? 'Yes' : 'No'}
+  Uptime: ${formatUptime(global.botState?.startTime)}
+  Messages: ${global.botState?.messageCount || 0}
+  Commands: ${global.botState?.commandCount || 0}`;
+            },
+            plugins: () => {
+                const plugins = global.botState?.plugins;
+                if (!plugins || plugins.size === 0) return 'No plugins loaded';
+                
+                let output = 'Loaded Plugins:\n';
+                plugins.forEach((plugin, name) => {
+                    output += `  - ${name} v${plugin.version || '1.0.0'}\n`;
+                });
+                return output;
+            },
+            reload: async () => {
+                try {
+                    const response = await fetch('/api/plugins/reload', { method: 'POST' });
+                    const data = await response.json();
+                    return data.message;
+                } catch (error) {
+                    return 'Error: ' + error.message;
+                }
+            },
+            restart: async () => {
+                try {
+                    const response = await fetch('/api/restart', { method: 'POST' });
+                    const data = await response.json();
+                    return data.message;
+                } catch (error) {
+                    return 'Error: ' + error.message;
+                }
+            },
+            stats: () => {
+                return `Statistics:
+  Messages Processed: ${global.botState?.messageCount || 0}
+  Commands Executed: ${global.botState?.commandCount || 0}
+  Unique Users: ${global.botState?.userCount?.size || 0}
+  Plugins Loaded: ${global.botState?.plugins?.size || 0}`;
+            },
+            clear: () => {
+                terminalOutput.innerHTML = '';
+                return null;
+            }
+        };
+        
+        // Handle input
+        terminalInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const command = terminalInput.value.trim();
+                if (command) {
+                    commandHistory.push(command);
+                    historyIndex = commandHistory.length;
+                    
+                    addLine('$ ' + command, 'input');
+                    await executeCommand(command);
+                    terminalInput.value = '';
+                }
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    terminalInput.value = commandHistory[historyIndex];
+                }
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++;
+                    terminalInput.value = commandHistory[historyIndex];
+                } else {
+                    historyIndex = commandHistory.length;
+                    terminalInput.value = '';
+                }
+            }
+        });
+        
+        // Execute command
+        async function executeCommand(command) {
+            const cmd = commands[command.toLowerCase()];
+            
+            if (cmd) {
+                try {
+                    const result = await cmd();
+                    if (result) {
+                        result.split('\n').forEach(line => {
+                            addLine(line, 'output');
+                        });
+                    }
+                } catch (error) {
+                    addLine('Error: ' + error.message, 'error');
+                }
+            } else {
+                addLine(`Command not found: ${command}. Type 'help' for available commands.`, 'error');
+            }
+        }
+        
+        // Run command from button
+        function runCommand(command) {
+            terminalInput.value = command;
+            terminalInput.focus();
+            executeCommand(command);
+            terminalInput.value = '';
+        }
+        
+        // Add line to terminal
+        function addLine(text, type = 'output') {
+            const line = document.createElement('div');
+            line.className = 'terminal-line ' + type;
+            
+            if (type === 'input') {
+                line.innerHTML = `<span class="terminal-prompt">$</span><span class="terminal-text">${escapeHtml(text.slice(2))}</span>`;
+            } else {
+                line.innerHTML = `<span class="terminal-text">${escapeHtml(text)}</span>`;
+            }
+            
+            terminalOutput.appendChild(line);
+            terminalOutput.scrollTop = terminalOutput.scrollHeight;
+        }
+        
+        // Clear terminal
+        function clearTerminal() {
+            terminalOutput.innerHTML = '';
+        }
+        
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Format uptime
+        function formatUptime(startTime) {
+            if (!startTime) return '0s';
+            const ms = Date.now() - startTime;
+            const seconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return `${days}d ${hours % 24}h`;
+            if (hours > 0) return `${hours}h ${minutes % 60}m`;
+            if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+            return `${seconds}s`;
+        }
+        
+        // Focus input on load
+        terminalInput.focus();
+        
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

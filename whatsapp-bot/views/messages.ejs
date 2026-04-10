@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item active">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Messages</h1>
+            </header>
+            
+            <!-- Send Message Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-paper-plane"></i> Send Message</h2>
+                </div>
+                <div class="card-body">
+                    <form id="sendMessageForm" class="message-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phoneNumber">
+                                    <i class="fas fa-phone"></i>
+                                    Phone Number
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="phoneNumber" 
+                                    name="number" 
+                                    placeholder="e.g., 1234567890"
+                                    required
+                                >
+                                <small>Include country code without +</small>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="messageText">
+                                <i class="fas fa-comment"></i>
+                                Message
+                            </label>
+                            <textarea 
+                                id="messageText" 
+                                name="message" 
+                                rows="4"
+                                placeholder="Type your message here..."
+                                required
+                            ></textarea>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Send Message
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="clearForm()">
+                                <i class="fas fa-eraser"></i>
+                                Clear
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="sendResult" class="alert" style="display: none;"></div>
+                </div>
+            </div>
+            
+            <!-- Quick Templates -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-copy"></i> Quick Templates</h2>
+                </div>
+                <div class="card-body">
+                    <div class="templates-grid">
+                        <button class="template-btn" onclick="useTemplate('Hello! How can I help you today?')">
+                            <i class="fas fa-hand-paper"></i>
+                            <span>Greeting</span>
+                        </button>
+                        <button class="template-btn" onclick="useTemplate('Thank you for contacting us!')">
+                            <i class="fas fa-thanks"></i>
+                            <span>Thank You</span>
+                        </button>
+                        <button class="template-btn" onclick="useTemplate('Your request has been processed successfully.')">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Confirmation</span>
+                        </button>
+                        <button class="template-btn" onclick="useTemplate('We will get back to you shortly.')">
+                            <i class="fas fa-clock"></i>
+                            <span>Follow Up</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Message History -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-history"></i> Recent Activity</h2>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list" id="activityList">
+                        <div class="activity-item">
+                            <div class="activity-icon">
+                                <i class="fas fa-info-circle"></i>
+                            </div>
+                            <div class="activity-content">
+                                <p>Message history will appear here</p>
+                                <span class="activity-time">Just now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Send message form
+        document.getElementById('sendMessageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const number = document.getElementById('phoneNumber').value;
+            const message = document.getElementById('messageText').value;
+            const resultDiv = document.getElementById('sendResult');
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const response = await fetch('/api/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number, message })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.style.display = 'block';
+                if (data.success) {
+                    resultDiv.className = 'alert alert-success';
+                    resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+                    addActivity('Message sent to ' + number);
+                    clearForm();
+                } else {
+                    resultDiv.className = 'alert alert-error';
+                    resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+                }
+            } catch (error) {
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'alert alert-error';
+                resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+            }
+            
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+        });
+        
+        // Use template
+        function useTemplate(text) {
+            document.getElementById('messageText').value = text;
+        }
+        
+        // Clear form
+        function clearForm() {
+            document.getElementById('sendMessageForm').reset();
+            document.getElementById('sendResult').style.display = 'none';
+        }
+        
+        // Add activity
+        function addActivity(text) {
+            const list = document.getElementById('activityList');
+            const item = document.createElement('div');
+            item.className = 'activity-item';
+            item.innerHTML = `
+                <div class="activity-icon success">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="activity-content">
+                    <p>${text}</p>
+                    <span class="activity-time">Just now</span>
+                </div>
+            `;
+            list.insertBefore(item, list.firstChild);
+        }
+    </script>
+</body>
+</html>

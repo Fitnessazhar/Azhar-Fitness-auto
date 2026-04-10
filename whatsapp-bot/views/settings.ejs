@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item active">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Settings</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveSettings()">
+                        <i class="fas fa-save"></i>
+                        Save Changes
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Settings Tabs -->
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="general">
+                    <i class="fas fa-cog"></i>
+                    General
+                </button>
+                <button class="tab-btn" data-tab="bot">
+                    <i class="fas fa-robot"></i>
+                    Bot
+                </button>
+                <button class="tab-btn" data-tab="web">
+                    <i class="fas fa-globe"></i>
+                    Web Server
+                </button>
+                <button class="tab-btn" data-tab="features">
+                    <i class="fas fa-toggle-on"></i>
+                    Features
+                </button>
+                <button class="tab-btn" data-tab="security">
+                    <i class="fas fa-shield-alt"></i>
+                    Security
+                </button>
+            </div>
+            
+            <!-- General Settings -->
+            <div class="tab-content active" id="general-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-cog"></i> General Settings</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Default Language</label>
+                            <select class="form-select">
+                                <option value="en" selected>English</option>
+                                <option value="es">Spanish</option>
+                                <option value="fr">French</option>
+                                <option value="de">German</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Timezone</label>
+                            <select class="form-select">
+                                <option value="UTC">UTC</option>
+                                <option value="America/New_York">Eastern Time</option>
+                                <option value="America/Chicago">Central Time</option>
+                                <option value="America/Denver">Mountain Time</option>
+                                <option value="America/Los_Angeles">Pacific Time</option>
+                                <option value="Europe/London">London</option>
+                                <option value="Europe/Paris">Paris</option>
+                                <option value="Asia/Tokyo">Tokyo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Date Format</label>
+                            <select class="form-select">
+                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bot Settings -->
+            <div class="tab-content" id="bot-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-robot"></i> Bot Configuration</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Bot Name</label>
+                            <input type="text" class="form-input" value="<%= config.bot.name %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Command Prefix</label>
+                            <input type="text" class="form-input" value="<%= config.bot.prefix %>" maxlength="1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Owner Name</label>
+                            <input type="text" class="form-input" value="<%= config.bot.owner %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Owner Number</label>
+                            <input type="text" class="form-input" value="<%= config.bot.ownerNumber %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-input" rows="3"><%= config.bot.description %></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-whatsapp"></i> WhatsApp Settings</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" <%= config.whatsapp.autoRead ? 'checked' : '' %>>
+                                    <span>Auto-read messages</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" <%= config.whatsapp.autoTyping ? 'checked' : '' %>>
+                                    <span>Show typing indicator</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" <%= config.whatsapp.readReceipts ? 'checked' : '' %>>
+                                    <span>Send read receipts</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Max File Size (MB)</label>
+                            <input type="number" class="form-input" value="<%= config.whatsapp.maxFileSize / 1024 / 1024 %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Typing Delay (ms)</label>
+                            <input type="number" class="form-input" value="<%= config.whatsapp.typingDelay %>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Web Server Settings -->
+            <div class="tab-content" id="web-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-globe"></i> Web Server Configuration</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Port</label>
+                                <input type="number" class="form-input" value="<%= config.web.port %>">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Host</label>
+                                <input type="text" class="form-input" value="<%= config.web.host %>">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Dashboard Title</label>
+                            <input type="text" class="form-input" value="<%= config.web.title %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Theme</label>
+                            <select class="form-select">
+                                <option value="dark" <%= config.web.theme === 'dark' ? 'selected' : '' %>>Dark</option>
+                                <option value="light" <%= config.web.theme === 'light' ? 'selected' : '' %>>Light</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Rate Limit (requests per window)</label>
+                            <input type="number" class="form-input" value="<%= config.web.rateLimit %>">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features Settings -->
+            <div class="tab-content" id="features-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-toggle-on"></i> Feature Toggles</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Welcome Message</h4>
+                                    <p>Send welcome message when users join groups</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.welcomeMessage ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Goodbye Message</h4>
+                                    <p>Send goodbye message when users leave groups</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.goodbyeMessage ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Anti-Spam</h4>
+                                    <p>Prevent users from spamming messages</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.antiSpam ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Auto Reply</h4>
+                                    <p>Automatically reply to common messages</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.autoReply ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Command Logging</h4>
+                                    <p>Log all executed commands</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.commandLogging ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="feature-item">
+                                <div class="feature-info">
+                                    <h4>Message Logging</h4>
+                                    <p>Log all received messages</p>
+                                </div>
+                                <label class="toggle">
+                                    <input type="checkbox" <%= config.features.messageLogging ? 'checked' : '' %>>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Security Settings -->
+            <div class="tab-content" id="security-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-shield-alt"></i> Security Settings</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Admin Username</label>
+                            <input type="text" class="form-input" value="<%= config.web.adminUsername %>">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Admin Password</label>
+                            <input type="password" class="form-input" placeholder="••••••••">
+                            <small>Leave blank to keep current password</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>JWT Secret</label>
+                            <input type="text" class="form-input" value="<%= config.web.jwtSecret %>">
+                            <small>Change this for production</small>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" <%= config.security.enableCors ? 'checked' : '' %>>
+                                    <span>Enable CORS</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox">
+                                    <input type="checkbox" <%= config.security.enableHelmet ? 'checked' : '' %>>
+                                    <span>Enable Helmet</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Allowed Origins</label>
+                            <input type="text" class="form-input" value="<%= config.security.allowedOrigins.join(', ') %>">
+                            <small>Comma-separated list or * for all</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="saveResult" class="alert" style="display: none;"></div>
+        </main>
+    </div>
+    
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                
+                // Update buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update content
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                document.getElementById(tab + '-tab').classList.add('active');
+            });
+        });
+        
+        // Save settings
+        function saveSettings() {
+            const resultDiv = document.getElementById('saveResult');
+            
+            // In a real implementation, you would send the settings to the server
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'alert alert-success';
+            resultDiv.innerHTML = '<i class="fas fa-check-circle"></i> Settings saved successfully!';
+            
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

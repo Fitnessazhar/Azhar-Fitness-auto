@@ -1,0 +1,56 @@
+{
+  "bot": {
+    "name": "WhatsApp Bot",
+    "version": "1.0.0",
+    "prefix": "!",
+    "owner": "Your Name",
+    "ownerNumber": "1234567890",
+    "description": "Advanced WhatsApp Bot with HTML Support",
+    "sessionName": "whatsapp-bot-session"
+  },
+  "whatsapp": {
+    "authFolder": "./data/auth",
+    "maxFileSize": 104857600,
+    "typingDelay": 1000,
+    "readReceipts": true,
+    "autoRead": false,
+    "autoTyping": true
+  },
+  "web": {
+    "enabled": true,
+    "port": 3000,
+    "host": "0.0.0.0",
+    "title": "WhatsApp Bot Dashboard",
+    "theme": "dark",
+    "rateLimit": 100
+  },
+  "database": {
+    "type": "json",
+    "path": "./data/database",
+    "backupInterval": 3600000
+  },
+  "plugins": {
+    "folder": "./plugins",
+    "autoLoad": true,
+    "enabled": ["all"]
+  },
+  "features": {
+    "welcomeMessage": true,
+    "goodbyeMessage": false,
+    "antiSpam": true,
+    "autoReply": false,
+    "commandLogging": true,
+    "messageLogging": false
+  },
+  "language": {
+    "default": "en",
+    "supported": ["en", "es", "fr", "de"],
+    "autoDetect": true
+  },
+  "logging": {
+    "level": "info",
+    "folder": "./logs",
+    "console": true,
+    "file": true
+  }
+}

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <h1>Dashboard</h1>
+                <div class="header-actions">
+                    <div class="status-badge <%= status.connected ? 'online' : 'offline' %>">
+                        <i class="fas fa-circle"></i>
+                        <%= status.connected ? 'Online' : 'Offline' %>
+                    </div>
+                    <button class="btn btn-icon" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon messages">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= status.messages.toLocaleString() %></h3>
+                        <p>Messages</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon commands">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= status.commands.toLocaleString() %></h3>
+                        <p>Commands</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= status.users.toLocaleString() %></h3>
+                        <p>Users</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon plugins">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= status.plugins %></h3>
+                        <p>Plugins</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bot Info & Quick Actions -->
+            <div class="dashboard-grid">
+                <!-- Bot Information -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-robot"></i> Bot Information</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-list">
+                            <div class="info-item">
+                                <span class="label">Name</span>
+                                <span class="value"><%= bot.name %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Version</span>
+                                <span class="value"><%= bot.version %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Prefix</span>
+                                <span class="value"><%= bot.prefix %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Owner</span>
+                                <span class="value"><%= bot.owner || 'Not set' %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Uptime</span>
+                                <span class="value" id="uptime"><%= status.uptime %></span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Status</span>
+                                <span class="value">
+                                    <span class="badge <%= status.connected ? 'success' : 'danger' %>">
+                                        <%= status.connected ? 'Connected' : 'Disconnected' %>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="quick-actions">
+                            <button class="action-btn" onclick="location.href='/qr'">
+                                <i class="fas fa-qrcode"></i>
+                                <span>Scan QR</span>
+                            </button>
+                            <button class="action-btn" onclick="restartBot()">
+                                <i class="fas fa-redo"></i>
+                                <span>Restart</span>
+                            </button>
+                            <button class="action-btn" onclick="location.href='/messages'">
+                                <i class="fas fa-paper-plane"></i>
+                                <span>Send Msg</span>
+                            </button>
+                            <button class="action-btn" onclick="location.href='/plugins'">
+                                <i class="fas fa-puzzle-piece"></i>
+                                <span>Plugins</span>
+                            </button>
+                            <button class="action-btn" onclick="location.href='/logs'">
+                                <i class="fas fa-file-alt"></i>
+                                <span>View Logs</span>
+                            </button>
+                            <button class="action-btn" onclick="location.href='/settings'">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Connection Status -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-plug"></i> Connection Status</h2>
+                </div>
+                <div class="card-body">
+                    <div class="connection-status">
+                        <div class="status-item">
+                            <div class="status-icon <%= status.connected ? 'connected' : '' %>">
+                                <i class="fas <%= status.connected ? 'fa-check-circle' : 'fa-times-circle' %>"></i>
+                            </div>
+                            <div class="status-text">
+                                <h4>WhatsApp Connection</h4>
+                                <p><%= status.connected ? 'Connected and ready' : 'Not connected' %></p>
+                            </div>
+                        </div>
+                        
+                        <% if (status.user) { %>
+                            <div class="status-item">
+                                <div class="status-icon connected">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="status-text">
+                                    <h4>Bot Account</h4>
+                                    <p><%= status.user.name %> (<%= status.user.id.split(':')[0] %>)</p>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <div class="status-item">
+                            <div class="status-icon connected">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <div class="status-text">
+                                <h4>Web Server</h4>
+                                <p>Running on port <%= process.env.WEB_PORT || 3000 %></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Activity Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-line"></i> Activity</h2>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        // Refresh data
+        function refreshData() {
+            location.reload();
+        }
+        
+        // Restart bot
+        async function restartBot() {
+            if (!confirm('Are you sure you want to restart the bot?')) return;
+            
+            try {
+                const response = await fetch('/api/restart', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('Bot restarted successfully!');
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            } catch (error) {
+                alert('Error restarting bot: ' + error.message);
+            }
+        }
+        
+        // Activity chart
+        const ctx = document.getElementById('activityChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                datasets: [{
+                    label: 'Messages',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderColor: '#25d366',
+                    backgroundColor: 'rgba(37, 211, 102, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }, {
+                    label: 'Commands',
+                    data: [8, 15, 5, 8, 4, 6],
+                    borderColor: '#128c7e',
+                    backgroundColor: 'rgba(18, 140, 126, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            fetch('/api/status')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('uptime').textContent = data.data.uptime;
+                    }
+                });
+        }, 30000);
+    </script>
+</body>
+</html>
