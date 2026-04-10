@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item active">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Logs</h1>
+                <div class="header-actions">
+                    <select id="logSelect" class="form-select" onchange="loadLog()">
+                        <% logFiles.forEach(file => { %>
+                            <option value="<%= file %>"><%= file %></option>
+                        <% }) %>
+                    </select>
+                    <button class="btn btn-primary" onclick="refreshLog()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                    <button class="btn btn-secondary" onclick="downloadLog()">
+                        <i class="fas fa-download"></i>
+                        Download
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Log Viewer -->
+            <div class="card log-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-file-alt"></i> Log Viewer</h2>
+                    <div class="log-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="info">Info</button>
+                        <button class="filter-btn" data-filter="error">Error</button>
+                        <button class="filter-btn" data-filter="command">Commands</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="log-container" id="logContainer">
+                        <div class="log-placeholder">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading logs...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Log Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Log Statistics</h2>
+                </div>
+                <div class="card-body">
+                    <div class="log-stats">
+                        <div class="log-stat">
+                            <span class="stat-label">Total Entries</span>
+                            <span class="stat-value" id="totalEntries">-</span>
+                        </div>
+                        <div class="log-stat">
+                            <span class="stat-label">Info</span>
+                            <span class="stat-value info" id="infoCount">-</span>
+                        </div>
+                        <div class="log-stat">
+                            <span class="stat-label">Errors</span>
+                            <span class="stat-value error" id="errorCount">-</span>
+                        </div>
+                        <div class="log-stat">
+                            <span class="stat-label">Commands</span>
+                            <span class="stat-value command" id="commandCount">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        let currentLog = [];
+        let currentFilter = 'all';
+        
+        // Load log file
+        async function loadLog() {
+            const filename = document.getElementById('logSelect').value;
+            const container = document.getElementById('logContainer');
+            
+            container.innerHTML = '<div class="log-placeholder"><i class="fas fa-spinner fa-spin"></i><p>Loading logs...</p></div>';
+            
+            try {
+                const response = await fetch('/api/logs/' + filename);
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentLog = data.data;
+                    displayLogs();
+                    updateStats();
+                } else {
+                    container.innerHTML = '<div class="log-placeholder error"><i class="fas fa-exclamation-circle"></i><p>' + data.message + '</p></div>';
+                }
+            } catch (error) {
+                container.innerHTML = '<div class="log-placeholder error"><i class="fas fa-exclamation-circle"></i><p>Error loading logs</p></div>';
+            }
+        }
+        
+        // Display logs with filter
+        function displayLogs() {
+            const container = document.getElementById('logContainer');
+            let filtered = currentLog;
+            
+            if (currentFilter !== 'all') {
+                filtered = currentLog.filter(line => 
+                    line.toLowerCase().includes('[' + currentFilter.toUpperCase() + ']')
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="log-placeholder"><i class="fas fa-inbox"></i><p>No logs found</p></div>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(line => {
+                let type = 'info';
+                if (line.includes('[ERROR]')) type = 'error';
+                else if (line.includes('[WARN]')) type = 'warn';
+                else if (line.includes('[COMMAND]')) type = 'command';
+                else if (line.includes('[SUCCESS]')) type = 'success';
+                
+                return '<div class="log-line ' + type + '">' + escapeHtml(line) + '</div>';
+            }).join('');
+            
+            container.scrollTop = container.scrollHeight;
+        }
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalEntries').textContent = currentLog.length;
+            document.getElementById('infoCount').textContent = currentLog.filter(l => l.includes('[INFO]')).length;
+            document.getElementById('errorCount').textContent = currentLog.filter(l => l.includes('[ERROR]')).length;
+            document.getElementById('commandCount').textContent = currentLog.filter(l => l.includes('[COMMAND]')).length;
+        }
+        
+        // Refresh log
+        function refreshLog() {
+            loadLog();
+        }
+        
+        // Download log
+        function downloadLog() {
+            const filename = document.getElementById('logSelect').value;
+            const content = currentLog.join('\n');
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                displayLogs();
+            });
+        });
+        
+        // Load initial log
+        loadLog();
+        
+        // Auto-refresh every 10 seconds
+        setInterval(refreshLog, 10000);
+    </script>
+</body>
+</html>

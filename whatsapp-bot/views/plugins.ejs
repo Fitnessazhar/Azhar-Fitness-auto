@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item active">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Plugins</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="reloadPlugins()">
+                        <i class="fas fa-sync-alt"></i>
+                        Reload All
+                    </button>
+                </div>
+            </header>
+            
+            <!-- Plugins Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon plugins">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= plugins.length %></h3>
+                        <p>Total Plugins</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon commands">
+                        <i class="fas fa-terminal"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3><%= plugins.reduce((acc, p) => acc + p.commands, 0) %></h3>
+                        <p>Total Commands</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Plugins List -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Installed Plugins</h2>
+                </div>
+                <div class="card-body">
+                    <div class="plugins-grid">
+                        <% plugins.forEach(plugin => { %>
+                            <div class="plugin-card">
+                                <div class="plugin-header">
+                                    <div class="plugin-icon">
+                                        <i class="fas fa-cube"></i>
+                                    </div>
+                                    <div class="plugin-info">
+                                        <h4><%= plugin.name %></h4>
+                                        <span class="version">v<%= plugin.version %></span>
+                                    </div>
+                                </div>
+                                <div class="plugin-body">
+                                    <p><%= plugin.description %></p>
+                                    <div class="plugin-meta">
+                                        <span><i class="fas fa-terminal"></i> <%= plugin.commands %> commands</span>
+                                        <span><i class="fas fa-user"></i> <%= plugin.author %></span>
+                                    </div>
+                                </div>
+                                <div class="plugin-actions">
+                                    <button class="btn btn-sm btn-secondary" onclick="viewPlugin('<%= plugin.name %>')">
+                                        <i class="fas fa-eye"></i>
+                                        View
+                                    </button>
+                                    <button class="btn btn-sm btn-primary" onclick="reloadPlugin('<%= plugin.name %>')">
+                                        <i class="fas fa-sync"></i>
+                                        Reload
+                                    </button>
+                                </div>
+                            </div>
+                        <% }) %>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add Plugin Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-plus-circle"></i> Add New Plugin</h2>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Drag and drop plugin file here</p>
+                        <span>or</span>
+                        <button class="btn btn-secondary">Browse Files</button>
+                        <small>Only .js files are supported</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="result" class="alert" style="display: none;"></div>
+        </main>
+    </div>
+    
+    <script>
+        // Reload all plugins
+        async function reloadPlugins() {
+            if (!confirm('Reload all plugins?')) return;
+            
+            try {
+                const response = await fetch('/api/plugins/reload', { method: 'POST' });
+                const data = await response.json();
+                
+                showResult(data.success, data.message);
+                if (data.success) {
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } catch (error) {
+                showResult(false, error.message);
+            }
+        }
+        
+        // Reload single plugin
+        async function reloadPlugin(name) {
+            try {
+                const response = await fetch('/api/plugins/reload', { method: 'POST' });
+                const data = await response.json();
+                
+                showResult(data.success, data.message);
+            } catch (error) {
+                showResult(false, error.message);
+            }
+        }
+        
+        // View plugin details
+        function viewPlugin(name) {
+            alert('Plugin: ' + name + '\n\nView detailed plugin information here.');
+        }
+        
+        // Show result
+        function showResult(success, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'alert ' + (success ? 'alert-success' : 'alert-error');
+            resultDiv.innerHTML = '<i class="fas fa-' + (success ? 'check-circle' : 'exclamation-circle') + '"></i> ' + message;
+        }
+    </script>
+</body>
+</html>

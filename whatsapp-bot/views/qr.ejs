@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fab fa-whatsapp"></i>
+                <span>WhatsApp Bot</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/qr" class="nav-item active">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Code</span>
+                </a>
+                <a href="/messages" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Messages</span>
+                </a>
+                <a href="/plugins" class="nav-item">
+                    <i class="fas fa-puzzle-piece"></i>
+                    <span>Plugins</span>
+                </a>
+                <a href="/logs" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Logs</span>
+                </a>
+                <a href="/terminal" class="nav-item">
+                    <i class="fas fa-terminal"></i>
+                    <span>Terminal</span>
+                </a>
+                <a href="/settings" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="/logout" class="nav-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <h1>QR Code</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="refreshQR()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </header>
+            
+            <div class="qr-container">
+                <% if (isConnected) { %>
+                    <div class="qr-card connected">
+                        <div class="qr-status-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2>Already Connected!</h2>
+                        <p>Your WhatsApp bot is connected and ready to use.</p>
+                        <div class="qr-actions">
+                            <a href="/" class="btn btn-primary">
+                                <i class="fas fa-home"></i>
+                                Go to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                <% } else if (qrCode) { %>
+                    <div class="qr-card">
+                        <div class="qr-image">
+                            <img src="<%= qrCode %>" alt="WhatsApp QR Code">
+                        </div>
+                        <h2>Scan to Connect</h2>
+                        <p>1. Open WhatsApp on your phone</p>
+                        <p>2. Go to Settings → Linked Devices</p>
+                        <p>3. Tap "Link a Device"</p>
+                        <p>4. Scan this QR code</p>
+                        <div class="qr-timer">
+                            <i class="fas fa-clock"></i>
+                            <span>QR Code refreshes every 20 seconds</span>
+                        </div>
+                    </div>
+                <% } else { %>
+                    <div class="qr-card loading">
+                        <div class="qr-loader">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                        <h2>Generating QR Code...</h2>
+                        <p>Please wait while we generate a new QR code.</p>
+                        <div class="qr-actions">
+                            <button class="btn btn-primary" onclick="refreshQR()">
+                                <i class="fas fa-sync-alt"></i>
+                                Retry
+                            </button>
+                        </div>
+                    </div>
+                <% } %>
+            </div>
+            
+            <!-- Instructions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-info-circle"></i> How to Connect</h2>
+                </div>
+                <div class="card-body">
+                    <div class="steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <h4>Open WhatsApp</h4>
+                                <p>Open WhatsApp on your Android or iPhone</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <h4>Go to Linked Devices</h4>
+                                <p>Android: Menu → Linked Devices<br>iPhone: Settings → Linked Devices</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <h4>Link a Device</h4>
+                                <p>Tap "Link a Device" and point your camera at the QR code</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">4</div>
+                            <div class="step-content">
+                                <h4>Done!</h4>
+                                <p>Your bot is now connected and ready to use</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        function refreshQR() {
+            location.reload();
+        }
+        
+        // Auto-refresh every 20 seconds if not connected
+        <% if (!isConnected) { %>
+        setInterval(() => {
+            location.reload();
+        }, 20000);
+        <% } %>
+    </script>
+</body>
+</html>
